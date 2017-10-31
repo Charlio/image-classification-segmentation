@@ -32,7 +32,7 @@ def cnn10(classes=10):
     x.add(Conv2D(128, (3, 3), activation='relu', padding='same', name='block3_conv2'))
     x.add(Conv2D(128, (3, 3), activation='relu', padding='same', name='block3_conv3'))
     x.add(MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool'))
-    x.add(Dropout(0.5))
+    x.add(Dropout(0.5))  
     
     # Dense block
     x.add(Flatten(name='flatten'))
