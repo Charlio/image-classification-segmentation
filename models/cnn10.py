@@ -1,7 +1,7 @@
 """
 """
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 
 def cnn10(classes=10):
@@ -43,10 +43,3 @@ def cnn10(classes=10):
     x.add(Dense(classes, activation='softmax', name='predictions'))
 
     return x
-
-
-def fcn8():
-    pass
-
-def fcn4():
-    pass
