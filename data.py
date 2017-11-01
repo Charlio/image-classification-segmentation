@@ -18,14 +18,14 @@ def seg_to_img(seg, img_path):
     imgname = basename.replace(".png", ".jpg")
     return os.path.join(img_path, imgname)
 
-def seg_to_mask(img):
-    mask = np.ndarray((HEIGHT, WIDTH))
-    for i in range(len(img)):
-        for j in range(len(img[0])):
-            if img[i][j].any() != 0:
-                mask[i][j] = 1
+def seg_to_mask(seg):
+    mask = np.ndarray((HEIGHT, WIDTH, 1))
+    for i in range(len(seg)):
+        for j in range(len(seg[0])):
+            if seg[i][j].any() != 0:
+                mask[i][j][0] = 1
             else:
-                mask[i][j] = 0
+                mask[i][j][0] = 0
     return mask
 
 def generate_data():
@@ -35,7 +35,7 @@ def generate_data():
     num_of_imgs = len(seg_names)
     
     imgs = np.ndarray((num_of_imgs, HEIGHT, WIDTH, CHANNEL))
-    masks = np.ndarray((num_of_imgs, HEIGHT, WIDTH))
+    masks = np.ndarray((num_of_imgs, HEIGHT, WIDTH, 1))
     
     print('-'*30)
     print('Creating training images and masks...')

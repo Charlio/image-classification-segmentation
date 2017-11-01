@@ -1,9 +1,18 @@
 image-classification-segmentation
 
-* introduction -- classification and segmentation with pictures
+* install conda and virtual environment from env file
 
-* graphs of models cnn16, fcn16 and fcn8
+* download Pascal VOC2012 image dataset from
+http://host.robots.ox.ac.uk/pascal/VOC/voc2012/#devkit
 
-* conda env file
+    - click the link: Download the training/validation data (2GB tar file)
 
-* data preparation
+    - then move the extracted folder VOCdevkit to your repo directory
+
+    - run data.py to generate training data files npy
+
+* download weights of VGG16, FCN32, FCN16, and put in saved_models
+
+* data-exploration-and-prediction-demo.ipynb
+
+* model-review-and-training.ipynb
