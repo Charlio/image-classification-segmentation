@@ -1,17 +1,65 @@
-"""Use FCN8 of VGG16 to generate masks for CIFAR10 and CIRFAR100
-"""
-from keras.datasets import cifar10
+from __future__ import print_function
+import numpy as np
+import glob
+import os.path
+import skimage.io as io
+from skimage.transform import resize
 
-(x_train, y_train), (x_test, y_test) = cifar10.load_data()
-print('x_train shape:', x_train.shape)
-print(x_train.shape[0], 'train samples')
-print(x_test.shape[0], 'test samples')
+DATA_PATH = "VOCdevkit/VOC2012/"
+SEGS_DIR = DATA_PATH + "SegmentationClass/"
+IMGS_DIR = DATA_PATH + "JPEGImages/"
 
-# Convert class vectors to binary class matrices.
-y_train = keras.utils.to_categorical(y_train, num_classes)
-y_test = keras.utils.to_categorical(y_test, num_classes)
+WIDTH = 224
+HEIGHT = 224
+CHANNEL = 3
 
-x_train = x_train.astype('float32')
-x_test = x_test.astype('float32')
-x_train /= 255
-x_test /= 255
+def seg_to_img(seg, img_path):
+    dirname, basename = os.path.split(seg)
+    imgname = basename.replace(".png", ".jpg")
+    return os.path.join(img_path, imgname)
+
+def seg_to_mask(img):
+    mask = np.ndarray((HEIGHT, WIDTH))
+    for i in range(len(img)):
+        for j in range(len(img[0])):
+            if img[i][j].any() != 0:
+                mask[i][j] = 1
+            else:
+                mask[i][j] = 0
+    return mask
+
+def generate_data():
+    seg_names = [seg for seg in glob.glob(SEGS_DIR)]
+    img_names = [seg_to_img(seg, IMGS_DIR) for seg in seg_names]
+    
+    num_of_imgs = len(seg_names)
+    
+    imgs = np.ndarray((num_of_imgs, HEIGHT, WIDTH, CHANNEL))
+    masks = np.ndarray((num_of_imgs, HEIGHT, WIDTH))
+    
+    print('-'*30)
+    print('Creating training images and masks...')
+    print('-'*30)
+    
+    for i in range(num_of_imgs):
+        seg =resize(io.imread(seg_names[i]), (HEIGHT, WIDTH, CHANNEL))
+        masks[i] = seg_to_mask(seg)
+        img = resize(io.imread(img_names[i]), (HEIGHT, WIDTH, CHANNEL))
+        imgs[i] = img
+        
+    print('Loading done.')
+
+    np.save(DATA_PATH + "imgs.npy", imgs)
+    np.save(DATA_PATH + "masks.npy", masks)
+    
+    print('Saving to .npy files done.')
+    
+
+def load_data():
+    imgs = np.load(DATA_PATH + 'imgs.npy')
+    masks = np.load(DATA_PATH + 'masks.npy')
+    return imgs, masks
+    
+    
+if __name__ == '__main__':
+    generate_data()
