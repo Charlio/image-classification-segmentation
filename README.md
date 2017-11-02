@@ -16,3 +16,10 @@ http://host.robots.ox.ac.uk/pascal/VOC/voc2012/#devkit
 * data-exploration-and-prediction-demo.ipynb
 
 * model-review-and-training.ipynb
+
+* tasks to do
+    - upload fcn32 (1.6G), fcn16 (1.7G) weights
+    - first draft of final report
+    - further parameter tuning
+    - run on cloud and use more gpus
+    - augment data
