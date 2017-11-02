@@ -1,3 +1,4 @@
+import numpy as np
 import keras.backend as K
 
 def dice_coef(y_true, y_pred):

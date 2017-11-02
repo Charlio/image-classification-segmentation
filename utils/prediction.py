@@ -14,10 +14,9 @@ def predict(model, img_path):
     io.show()
     img = np.expand_dims(img, 0)
     pred = model.predict(img, batch_size=1)
-    pred = np.argmax(pred, axis=3)
+    pred = (pred*255.0).astype(np.uint8)
     pred = np.squeeze(pred)
-    pred = pred*255
     io.imshow(pred)
     io.show()
-    
+ 
     return pred

@@ -43,6 +43,7 @@ def FCN32(classes=2):
 
     x.add(Conv2DTranspose(classes, (64, 64), padding='valid', strides=(32, 32), name='deconv1'))
     x.add(Cropping2D(cropping=((16, 16), (16, 16))))
-    x.add(Dense(classes, activation='softmax', name='predictions'))
-    
+    #x.add(Dense(classes, activation='softmax', name='logits'))
+    x.add(Conv2D(1, (1, 1), activation='sigmoid'))
+
     return x

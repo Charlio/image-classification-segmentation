@@ -13,10 +13,10 @@ WIDTH = 224
 HEIGHT = 224
 CHANNEL = 3
 
-def seg_to_img(seg, img_path):
+def seg_to_img(seg, imgs_dir):
     dirname, basename = os.path.split(seg)
     imgname = basename.replace(".png", ".jpg")
-    return os.path.join(img_path, imgname)
+    return os.path.join(imgs_dir, imgname)
 
 def seg_to_mask(seg):
     mask = np.ndarray((HEIGHT, WIDTH, 1))
@@ -29,30 +29,41 @@ def seg_to_mask(seg):
     return mask
 
 def generate_data():
-    seg_names = [seg for seg in glob.glob(SEGS_DIR)]
+    seg_names = [seg for seg in glob.glob(SEGS_DIR + "*")]
     img_names = [seg_to_img(seg, IMGS_DIR) for seg in seg_names]
     
     num_of_imgs = len(seg_names)
     
-    imgs = np.ndarray((num_of_imgs, HEIGHT, WIDTH, CHANNEL))
-    masks = np.ndarray((num_of_imgs, HEIGHT, WIDTH, 1))
+    print('-'*30)
+    print('There are ', num_of_imgs, ' pairs of images and masks to load.')
+    
+    imgs = np.ndarray((num_of_imgs, HEIGHT, WIDTH, CHANNEL), dtype=np.uint8)
+    masks = np.ndarray((num_of_imgs, HEIGHT, WIDTH, 1), dtype=np.uint8)
     
     print('-'*30)
     print('Creating training images and masks...')
     print('-'*30)
     
     for i in range(num_of_imgs):
-        seg =resize(io.imread(seg_names[i]), (HEIGHT, WIDTH, CHANNEL))
+        seg =resize(io.imread(seg_names[i]), (HEIGHT, WIDTH, CHANNEL), preserve_range=True)
         masks[i] = seg_to_mask(seg)
-        img = resize(io.imread(img_names[i]), (HEIGHT, WIDTH, CHANNEL))
+        img = resize(io.imread(img_names[i]), (HEIGHT, WIDTH, CHANNEL), preserve_range=True)
         imgs[i] = img
+        if i % 200 == 0:
+            print(i, "pairs of images and masks are loaded.")
         
-    print('Loading done.')
+    print('Finished loading all ', num_of_imgs, " pairs of images and masks.")
 
+    imgs = imgs.astype('float32')
+    mean = np.mean(imgs)
+    std = np.std(imgs)
+    imgs -= mean
+    imgs /= std
+    
     np.save(DATA_PATH + "imgs.npy", imgs)
     np.save(DATA_PATH + "masks.npy", masks)
     
-    print('Saving to .npy files done.')
+    print('Saved images and masks to .npy files')
     
 
 def load_data():
