@@ -27,7 +27,11 @@ image-classification-segmentation
 
 * model weights
     
-    - If you have trouch downloading VGG16 in the notebook when calling keras.applications.vgg16.VGG16, then use the following link to manually download it, and put in ~/.keras/models/. VGG16 weights (~ 500MB) is needed for training FCN32, if you do not plan to train FCN32, then you don't need to download it.
+    - If you have trouch downloading VGG16 in the notebook when calling keras.applications.vgg16.VGG16, then use the following link to manually download it, and put in 
+    
+            ~/.keras/models/. 
+            
+    VGG16 weights (~ 500MB) is needed for training FCN32, if you do not plan to train FCN32, then you don't need to download it.
     
     - [VGG16](https://www.dropbox.com/s/jl6m0vk42c3sogf/vgg16_weights_tf_dim_ordering_tf_kernels.h5?dl=0) 
     
