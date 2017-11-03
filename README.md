@@ -35,8 +35,13 @@ image-classification-segmentation
     - run data.py to generate training data files .npy
 
 * model weights
-
-    - VGG16, FCN32, FCN16 
+    
+    - If you have trouch downloading VGG16 in the notebook when calling keras.applications.vgg16.VGG16, then use the following link to manually download it, and put in ~/.keras/models/. VGG16 weights (~ 500m) is needed for training FCN32, if you do not plan to train FCN32, then you don't need to download it.
+    - [VGG16](https://www.dropbox.com/home/fcn-model-weights?preview=vgg16_weights_tf_dim_ordering_tf_kernels.h5) 
+    - Download the following weights of FCN32(~1.6G), and put it in your repo/saved_models/ . The weights is needed for prediction demonstration, as well as training FCN16. If you do not want to train FCN16 or predict with FCN32, then you don't need to download it.
+    - [FCN32](https://www.dropbox.com/home/fcn-model-weights?preview=fcn32_7761.h5)
+    - Download the following weights of FCN16(~1.7G), and put it in your repo/saved_models/ . The weights is needed for prediction demonstration with FCN16.
+    - [FCN16](https://www.dropbox.com/home/fcn-model-weights?preview=fcn16_7835.h5) 
 
 * data exploration and model prediction demonstration
 
