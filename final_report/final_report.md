@@ -95,50 +95,89 @@ Data preprocessing is done in the [data.py file](https://github.com/Charlio/imag
 
 For each original image, we resize it to (224, 224, 3) which is compatible with the VGG16 model. For segmentation purpose, we also normalize it by substracting the mean and divided by the standard deviation.
 
-For each segmentation image, we transform it into a white/black mask. Below shows one example pair of image and mask that we use in the training dataset:
-![]() ![]()
+For each segmentation image, we transform it into a white/black mask. So finally our training data will be two numpy arrays of sizes (2913, 224, 224, 3) and (2913, 224, 224, 1). There are 2913 pairs of normalized image and corresponding mask. Pixels in the normalized image have mean 0 and std 1. Each pixel in the mask takes values either 0 or 1. Following shows a mask image in which pixels take values 0 or 255.
+
+![](mask_demo.png)
+
 
 ### Implementation
 
-- training of FCN32: weights from VGG16, data, optimizer, loss, metric, lr, etc
-- computational graph
-- training of FCN16: weights from FCN16, etc
-- computational graph
-- prediction function
+Training is done in the jupyter notebook [model-review-and-training.ipynb](https://github.com/Charlio/image-classification-segmentation/blob/master/model-review-and-training.ipynb).
+
+1. Compile VGG16 and load its weights
+2. Compile FCN32 with the specification:
+    
+        adam = optimizers.Adam(lr=1e-6, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+        fcn32.compile(loss=dice_coef_loss,
+              optimizer=adam,
+              metrics=[dice_coef])
+3. transfer weights of VGG16 into FCN32 and start training with preprocessed data:
+         
+         fcn32.fit(imgs, masks, 
+          batch_size=16, 
+          epochs=15,
+          verbose=1,
+          validation_split=0.2)
+ 
+    With the use of one gpu(GM204M [GeForce GTX 980M]), I trained for 15 epochs which took about one hour. 
+    
+4. I then saved the FCN32 weights, and show one example of its prediction.
+
+5. Repeat the steps for training FCN16 with transfered weights from FCN32. Notice I only trained for 5 epochs, feel free to try longer to get more accurate results.
 
 ### Refinement
 
-- train for longer time on cloud with gpu
-- lr refine
+1. To make life much easier, we used weights from pre-trained VGG16 model. This gives our FCN models a very good start.
+2. I used one gpu on my laptop. Use the following cod to call the first gpu:
+
+        import os
+        os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+3. After about 10 epochs for FCN32, loss decreases slower, so use a smaller learning rate from then on, say 1e-6 instead of previous 1e-5.
+4. The final validation dice coefficient I got for FCN32 is 0.7761, while that for FCN16 is 0.7835. So one can see it becomes even harder to train the FCN16 model. The original authors trained these models for hours.
+5. 
 
 
 ## IV. Results
 
 ### Model Evaluation and Validation
 
-- validation set
-- dice coefficient
-- performance on test images: localization; coarse shape, long thin part
+1. 20% of the data were used for validation during training. I used all the 2913 pairs of image and mask for training. There is no test dataset, because the number of images and masks is small compared to the huge amount of parameters in the models(~134M).
+2. Performance is given by apply the model directly on images to produce masks, and we can visually compare the results as will show later.
+3. Since I used binary masks, the Dice coefficient is used as the evaluation metric, while its negative is used as the loss function during training.
+4. I tested several images for FCN32 and FCN16. For all images, FCN16 performed better than FCN32 which is expected. The models perform very well to find objects, and are able to give the general shape mask of objects. Models give more accurate masks for objects without many tiny, small, thin, or long parts. Models perform worse on detecting local patterns like the wings of airplanes, legs and arms, etc. The reason is that we didn't exploit the shallow layer information. Though we used one shallow layer in FCN16, it is still not enough. In order to detect local pattern, we should use shallower layer weights. This is done in the FCN8 model mention in the paper. 
 
 ### Justification
 
-- hardware config
-- training config
+1. The FCN series models I trained are very successfully in finding common objects. They also work well in draw the overal shape of objects since we extract a lot of global information from the deeper layers.
+2. Models fail to detect local patterns because local information from shallow layers are not used much. 
+3. Since it is easy to write model definitions in Keras, one can continue to define the FCN8 model, or even FCN4 or FCN2 to get a better result.
+4. Due to lack of time, I only trained FCN32 for one hour, and less than 30mins for FCN16. If trained longer, models shall perform better.
+5. The segmentation dataset only contains 2913 pairs of image and masks. One can use augmentation to generate more data in order to train the models longer and effectively.
 
 ## V. Conclusion
 
 ### Free-Form Visualization
 
-- show prediction masks and images
+Let us look at two examples of predictions. Left image is the original image, middle one is the prediction from FCN32, right one is the prediction from FCN16.
+
+![](demo_1.png) ![](fcn32_demo_1.png) ![](fcn16_demo_1.png)
+
+![](demo_2.png) ![](fcn32_demo_2.png) ![](fcn16_demo_2.png)
+
+
 
 ### Reflection
 
-- steps summary
-- bottleneck, difficulties
-- deconv vs bilinear upsampling
+1. The models are well-established in the paper and implemented by the authors. However, I found online resources about fully convolutional networks like blogs, git repos, papers not easy to read. This project shall be the easiset one to understand and implement while still works well up to this time.
+2. It takes some time to understand all the differences FCN models make from the original VGG classification models. New concepts include deconvolution, dice coefficient, or cross entropy for logits which are used by other developers for the full-fledged FCN models.
+3. These models have huge amount of weights about 130M. The h5 files are about 1.5GB compare to VGG16's 500MB. So in order to get good results, one has to feed models a lot of data. However, even the VOC dataset only has 2913 paired images. If one wants to use it for other more professional purposes, then it will be difficult to collect enough data for training. For example, look at this kaggle competition on [ultrasound nerve segmentation](https://www.kaggle.com/c/ultrasound-nerve-segmentation)
+4. Recall we used weights of VGG16 to train our FCN models. In order to do image segmentation, one needs to first train a classification modle on the objects that one wants to detect and localize. The VGG16 model is trained on 1000 classes of common objects. If one wants to detect other uncommon objects, then one will have more work to do.
+
 
 ### Improvement
 
-- more prediction classes instead of two
-- train longer time
-- link to orginal author (caffe), D's blog (tensorflow)
+1. This project is a good starting point for one to learn more about image segmentation. I made it easy to understand and implement in Keras.
+2. Start from here, one can continue to implement FCN8.
+3. Then the next step will be to implement the full-fledged FCN series models, which is able to detect object classes. Original FCN models were trained for 20 object classes, while I simplified it to binary.
+4. One runnable implementation in tensorflow is given [here](https://github.com/warmspringwinds/tf-image-segmentation)
+5. Implementation in caffe from the original author is given [here](https://github.com/shelhamer/fcn.berkeleyvision.org)
